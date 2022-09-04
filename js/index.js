@@ -6,7 +6,7 @@ let replies = [];
 let idreplies = [];
 
 //fetching json file
-fetch("data.json")
+fetch("./js/data.json")
 .then((res) => res.json())
 .then((data) => {
   console.log(data);
