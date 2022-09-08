@@ -12,6 +12,9 @@ let repliesReplingTo = [];
 
 let lastClicked;
 
+let increaseAmount = []
+let active = false;
+
 //fetching json file
 fetch("data.json")
 .then((res) => res.json())
@@ -40,7 +43,7 @@ fetch("data.json")
     <p class="fw-400 content">${datum.content}</p>
     <div class="vote bg-gray">
     <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-    <p class="cl-blue fw-700">${datum.score}</p>
+    <p class="cl-blue vote-score fw-700">${datum.score}</p>
     <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
     </div>
     <button id="reply-${datum.id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
@@ -55,6 +58,7 @@ fetch("data.json")
     </div>`;
   });
     increase();
+    decrease();
   //DYNAMICALLY DISPLAYING USER COMMENT BOX
   userCommentBox.innerHTML += `
   <div class="container comment-box bg-light">
@@ -148,7 +152,7 @@ fetch("data.json")
       <p class="fw-400 content"><span class="cl-blue fw-500" >@${repliesReplyingTo[i]}</span> ${replies[i].content}</p>
       <div class="vote bg-gray">
       <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-      <p class="cl-blue fw-700">${replies[i].score}</p>
+      <p class="cl-blue vote-score fw-700">${replies[i].score}</p>
       <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
       </div>
       <button id="reply-${replies[i].id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
@@ -156,6 +160,7 @@ fetch("data.json")
           `
         }
           increase();
+          decrease();
 }
         repliesfill()
       }
@@ -166,11 +171,12 @@ fetch("data.json")
   document.getElementById('comment-btn').addEventListener('click', addComment)
     
        let commentId = []
+       let newCommentOutput = "";
    function addComment(){
      commentId.push(true);
      if (document.querySelector('#comment-textarea').value) {
      document.getElementById('new-comment').style.display = "grid"
-     document.getElementById('new-comment').innerHTML += `
+     newCommentOutput += `
      <div id="comment-container-${commentId.length}" class="container bg-light">
      <div class="profile-period">
       <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
@@ -179,28 +185,63 @@ fetch("data.json")
       </div>
       <p class="fw-400 content">${document.querySelector('#comment-textarea').value}</p>
       <div class="vote bg-gray">
-      <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-      <p class="cl-blue fw-700">0</p>
-      <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
+      <button id="new-comment-vote-up-${commentId.length}" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
+      <p class="cl-blue vote-score fw-700">0</p>
+      <button id="new-comment-vote-down-${commentId.length}" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
       </div>
       <button id="new-comment-${commentId.length}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
-        <div>`
-     increase();
+        </div>`
+        document.getElementById('new-comment').innerHTML = newCommentOutput;
      }
      document.querySelector('#comment-textarea').value = '';
+     increase();
+     decrease();
    }
    
    //FUCTION INCREASE FOR ALL '+'
    function increase () {
      document.querySelectorAll('.increase-btn').forEach(perIncrease => {
        if (perIncrease.classList.contains('active')) {
-         
+ 
        } else {
-         perIncrease.addEventListener('click', () => { console.log('click')});
+         perIncrease.addEventListener('click', () => { 
+           if (perIncrease.nextElementSibling.classList.contains('incremented')) {
+           console.log('click')
+           } else {
+           perIncrease.nextElementSibling.innerHTML = parseInt(perIncrease.nextElementSibling.innerHTML) + 1;
+           perIncrease.nextElementSibling.classList.add('incremented');
+           if (perIncrease.nextElementSibling.classList.contains('decremented')) {
+             perIncrease.nextElementSibling.classList.remove('decremented');
+           }
+           }
+         });
        perIncrease.classList.add('active');
        }
-       console.log(perIncrease.classList);
+       console.log(perIncrease.classList.value + ": " + perIncrease.nextElementSibling.classList.value + ' :' + perIncrease.id);
      })
+   }
+   
+   // FUNCTION FOR DECREASE VOTE VALUE
+   function decrease() {
+     document.querySelectorAll('.decrease-btn').forEach(perDecrease => {
+       if (perDecrease.classList.contains('active')) {
+
+       } else {
+         perDecrease.addEventListener('click', () => { 
+           if (perDecrease.previousElementSibling.classList.contains('decremented') || !perDecrease.previousElementSibling.classList.contains('incremented')) {
+           console.log('click')
+           } else {
+           perDecrease.previousElementSibling.innerHTML = parseInt(perDecrease.previousElementSibling.innerHTML) - 1;
+           perDecrease.previousElementSibling.classList.add('decremented');
+           if (perDecrease.previousElementSibling.classList.contains('incremented')) {
+             perDecrease.previousElementSibling.classList.remove('incremented');
+           }
+           }
+         });
+       perDecrease.classList.add('active');
+       }
+       console.log(perDecrease.classList.value + ": " + perDecrease.previousElementSibling.classList.value + ' :' + perDecrease.id);
+     })// body...
    }
 })
 .catch((e) => console.log(e));
