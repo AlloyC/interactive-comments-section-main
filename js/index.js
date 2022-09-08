@@ -1,21 +1,34 @@
 const tweet = document.getElementById("tweets");
+const userCommentBox = document.getElementById('comment');
+let currentUser;
 let container;
 let usernames = [];
 let userPics = [];
 let replies = [];
-let idreplies = [];
+
+let repliesUsernames = [];
+let repliesUserPics = [];
+let repliesReplingTo = [];
+
+let lastClicked;
 
 //fetching json file
-fetch("./js/data.json")
+fetch("data.json")
 .then((res) => res.json())
 .then((data) => {
   console.log(data);
+
+              //  COMMENTS LOOPS
   data.comments.forEach((datum) => {
     usernames.push(datum.user.username);
     userPics.push(datum.user.image.png);
+    
   });
-
+  
+    
+// DYNAMICALLY DISPLAYING THE COMMENTS
   data.comments.forEach((datum) => {
+    
     tweet.innerHTML += `
     <div id=${datum.id}>
     <div class="container bg-light">
@@ -26,78 +39,168 @@ fetch("./js/data.json")
     </div>
     <p class="fw-400 content">${datum.content}</p>
     <div class="vote bg-gray">
-    <button id="increase" class="btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
+    <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
     <p class="cl-blue fw-700">${datum.score}</p>
-    <button id="decrease" class="btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
+    <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
     </div>
     <button id="reply-${datum.id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
     </div>
-    <div id="${datum.id}-reply-container" class="container reply-container hidden"></div>
+    
+    <div id="${datum.id}-reply-container" class="container reply-container">
+      
+    </div>
+    <div id="${datum.id}-reply-comment" class="reply-comment">
+    
+    </div>
     </div>`;
   });
-  document.querySelectorAll(".reply").forEach(replyBtn => replyBtn.addEventListener("click", () => {
-    let replyContainer = document.getElementById(`${parseInt(replyBtn.id.match(/\d/)[0])}-reply-container`);
-    let repliesDetails = [];
-    data.comments.forEach(userDetails => repliesDetails.push(userDetails.replies));
-    //console.log(repliesDetails);
-
-    if (replyContainer.classList.contains('hidden')) {
-      replyContainer.classList.remove('hidden');
-      let repliesContentEach = [];
-      let repliesContent = [];
-      let eachReplies = "";
-      repliesDetails.forEach(replies => {
-        if (replies.length > 1) {
-          replies.forEach(contents => {
-            if (contents.content) {
-
-              repliesContentEach.push(contents.content);
-
-            } else {
-              repliesContentEach;
-
-            }
-          });
-          repliesContent.push(repliesContentEach);
-          repliesContentEach = [];
-        } else {
-          if (replies.content) {
-
-            repliesContentEach.push(replies.content);
-
-          } else {
-
-            repliesContentEach;
-
-          }
-          repliesContent.push(repliesContentEach);
-          repliesContentEach = [];
-        }
-      });
-
-      repliesContent[parseInt(replyBtn.id.match(/\d/)[0]) - 1].forEach(eachReply => eachReplies = eachReply);
-      console.log(eachReplies);
-      console.log(repliesContent);
-      replyContainer.innerHTML;
-      `<div class="container bg-light">
-      <div class="profile-period">
-      <img class="dp" src="${repliesDetails.user.image.png}" alt="profile picture" />
-      <h2 class="fw-700">${datum.user.username}</h2>
-      <p class="fw-400 cl-dark-gray">${datum.createdAt}</p>
+    increase();
+  //DYNAMICALLY DISPLAYING USER COMMENT BOX
+  userCommentBox.innerHTML += `
+  <div class="container comment-box bg-light">
+      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
+      <textarea id="comment-textarea" class="fw-400 content" name="" placeholder="Add a comment..." rows="8" cols="20"></textarea>
+      <button id="comment-btn" class=" cl-light bg-blue fw-500" type="submit">SEND</button>
       </div>
-      <p class="fw-400 content">${repliesContent[parseInt(replyBtn.id.match(/\d/)[0]) - 1]}</p>
-      <div class="vote bg-gray">
-      <button id="increase" class="btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-      <p class="cl-blue fw-700">${datum.score}</p>
-      <button id="decrease" class="btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
-      </div>
-      <button id="reply-${datum.id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
-      </div>
-      <div id="${datum.id}-reply-container" class="container reply-container hidden"></div>
-      `;
-    } else {
-      replyContainer.classList.add('hidden')
+  `;
+  
+  // LOOPING TROUGH EACH REPLY BTN WITH ADDEVENTLISTENER
+  document.querySelectorAll('.reply').forEach(clickedBtn => {clickedBtn.addEventListener('click', replyClicked);
+   
+   function replyClicked () {
+      pushingClickedRA();
+      if (typeof lastClicked != 'undefined' && document.getElementById(`reply-${lastClicked}`) != clickedBtn) {
+         document.getElementById(`${lastClicked}-reply-container`).innerHTML = '';
+         document.getElementById(`${lastClicked}-reply-comment`).innerHTML = '';
+         document.getElementById(`${lastClicked}-reply-comment`).style.display = 'none';
+         
+         document.getElementById(`${lastClicked}-reply-container`).style.display = "none";
+          
+         document.getElementById(`reply-${lastClicked}`).classList.remove('showing');
+        
+      }
+      
+      if (clickedBtn.classList.contains('showing') ) {
+         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).innerHTML = '';
+         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).innerHTML = '';
+         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).style.display = 'none';
+         
+         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).style.display = "none";
+          
+         clickedBtn.classList.remove('showing');
+       }  else {
+         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).style.display = "grid";
+         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).style.display = 'grid';
+     
+          document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).style.gridGap = "20px";
+     
+          replyFillUp();
+          
+          lastClicked = `${clickedBtn.id.match(/\d/g)}`;
+          clickedBtn.classList.add('showing');
+      }
+    };
+   
+    function pushingClickedRA () { // RA = replies Array
+      replies = [];
+      replies = data.comments[parseInt(clickedBtn.id.match(/\d/g)) - 1].replies;
     }
-  }));
+    
+    function pushingRepliesC () { //C = contents
+      repliesUsernames = [];
+      repliesUserPics = [];
+      repliesReplyingTo = [];
+    
+      replies.forEach( repliedFrom => {
+          repliesUsernames.push(repliedFrom.user.username);
+          repliesUserPics.push(repliedFrom.user.image.png);
+          repliesReplyingTo.push(repliedFrom.replyingTo);
+        }
+      );
+    }
+    
+    function replyFillUp() {
+      function replyComment () {
+      document.querySelectorAll('.reply-comment').forEach(allReply => allReply.innerHTML = '');
+      document.querySelectorAll('.reply-container').forEach(allReply => allReply.innerHTML = '');
+      document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).innerHTML +=
+          `
+          <div class="container comment-box bg-light ">
+      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
+      <textarea class="fw-400 content" name=""  rows="8" cols="20"></textarea>
+      <button id="reply-currentUser-${clickedBtn.id.match(/\d/g)}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
+      </div>
+          `
+      }
+      replyComment()
+          if (replies[0].hasOwnProperty('id') && replies.length > 1) {
+        pushingRepliesC();
+        function  repliesfill() {
+  for (let i = 0; i < replies.length; i++) {
+        document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).innerHTML +=
+          `
+          <div class="container bg-light">
+      <div class="profile-period">
+      <img class="dp" src="${repliesUserPics[i]}" alt="profile picture" />
+      <h2 class="fw-700">${repliesUsernames[i]}</h2>
+      <p class="fw-400 cl-dark-gray">${replies[i].createdAt}</p>
+      </div>
+      <p class="fw-400 content"><span class="cl-blue fw-500" >@${repliesReplyingTo[i]}</span> ${replies[i].content}</p>
+      <div class="vote bg-gray">
+      <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
+      <p class="cl-blue fw-700">${replies[i].score}</p>
+      <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
+      </div>
+      <button id="reply-${replies[i].id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
+      </div>
+          `
+        }
+          increase();
+}
+        repliesfill()
+      }
+    }
+  });
+  
+    // ADD COMMENT VALUES
+  document.getElementById('comment-btn').addEventListener('click', addComment)
+    
+       let commentId = []
+   function addComment(){
+     commentId.push(true);
+     if (document.querySelector('#comment-textarea').value) {
+     document.getElementById('new-comment').style.display = "grid"
+     document.getElementById('new-comment').innerHTML += `
+     <div id="comment-container-${commentId.length}" class="container bg-light">
+     <div class="profile-period">
+      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
+      <h2 class="fw-700">${data.currentUser.username}</h2>
+      <p class="fw-400 cl-dark-gray"></p>
+      </div>
+      <p class="fw-400 content">${document.querySelector('#comment-textarea').value}</p>
+      <div class="vote bg-gray">
+      <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
+      <p class="cl-blue fw-700">0</p>
+      <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
+      </div>
+      <button id="new-comment-${commentId.length}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
+        <div>`
+     increase();
+     }
+     document.querySelector('#comment-textarea').value = '';
+   }
+   
+   //FUCTION INCREASE FOR ALL '+'
+   function increase () {
+     document.querySelectorAll('.increase-btn').forEach(perIncrease => {
+       if (perIncrease.classList.contains('active')) {
+         
+       } else {
+         perIncrease.addEventListener('click', () => { console.log('click')});
+       perIncrease.classList.add('active');
+       }
+       console.log(perIncrease.classList);
+     })
+   }
 })
 .catch((e) => console.log(e));
