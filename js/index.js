@@ -243,6 +243,7 @@ fetch("js/data.json")
      
      increase();
      decrease();
+     
    }
    
    //FUCTION INCREASE FOR ALL '+'
@@ -296,8 +297,8 @@ fetch("js/data.json")
      document.querySelectorAll('.post-reply').forEach(post => {
      let newReplyOutput2 = '';
        
-     newReplyOutput2 = document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
        post.addEventListener('click', () => {
+     newReplyOutput2 = document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
       // console.log(post.id);
        console.log(post.previousElementSibling.value);
       
