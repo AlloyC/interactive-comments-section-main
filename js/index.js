@@ -172,18 +172,25 @@ fetch("js/data.json")
     
        let commentId = []
        let newCommentOutput = "";
+       let newCommentOutput2 = '';
    function addComment(){
      commentId.push(true);
+     newCommentOutput2 = document.getElementById('new-comment').innerHTML;
+  // console.log(document.getElementById('new-comment').innerHTML);
      if (document.querySelector('#comment-textarea').value) {
      document.getElementById('new-comment').style.display = "grid"
-     newCommentOutput += `
+     let paragraph = document.createElement('p');
+     paragraph.className ='fw-400 content';
+     paragraph.appendChild(document.createTextNode(document.querySelector('#comment-textarea').value));
+    // document.getElementById('new-comment').appendChild(paragraph)
+     newCommentOutput = `
      <div id="comment-container-${commentId.length}" class="container bg-light">
      <div class="profile-period">
       <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
       <h2 class="fw-700">${data.currentUser.username}</h2>
       <p class="fw-400 cl-dark-gray"></p>
       </div>
-      <p class="fw-400 content">${document.querySelector('#comment-textarea').value}</p>
+      <p id="paragraph-${commentId.length}" class="fw-400 content"></p>
       <div class="vote bg-gray">
       <button id="new-comment-vote-up-${commentId.length}" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
       <p class="cl-blue vote-score fw-700">0</p>
@@ -191,9 +198,20 @@ fetch("js/data.json")
       </div>
       <button id="new-comment-${commentId.length}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
         </div>`
+        
+       document.getElementById('new-comment').style.display = "none"
         document.getElementById('new-comment').innerHTML = newCommentOutput;
+        document.getElementById(`paragraph-${commentId.length}`).innerText = document.querySelector('#comment-textarea').value;
+        newCommentOutput2 += document.getElementById('new-comment').innerHTML;
+        document.getElementById('new-comment').innerHTML = newCommentOutput2;
+        document.getElementById('new-comment').style.display = "grid";
+        for (let i = 0; i < document.getElementById('new-comment').children.length; i++){
+        document.getElementById('new-comment').children[i].children[2].children[0].classList.remove('active');
+        document.getElementById('new-comment').children[i].children[2].children[2].classList.remove('active');
+        }
      }
      document.querySelector('#comment-textarea').value = '';
+     
      increase();
      decrease();
    }
