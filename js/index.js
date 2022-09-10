@@ -10,6 +10,7 @@ let repliesUsernames = [];
 let repliesUserPics = [];
 let repliesReplingTo = [];
 
+
 let lastClicked;
 
 let increaseAmount = []
@@ -60,13 +61,39 @@ fetch("js/data.json")
     increase();
     decrease();
   //DYNAMICALLY DISPLAYING USER COMMENT BOX
-  userCommentBox.innerHTML += `
-  <div class="container comment-box bg-light">
-      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
-      <textarea id="comment-textarea" class="fw-400 content" name="" placeholder="Add a comment..." rows="8" cols="20"></textarea>
-      <button id="comment-btn" class=" cl-light bg-blue fw-500" type="submit">SEND</button>
-      </div>
-  `;
+  //CREATING NEW DIV.CONTAINER
+  let  commentDiv = document.createElement('div');
+  commentDiv.className ="container comment-box bg-light";
+  
+  userCommentBox.appendChild(commentDiv);
+  
+  //CREATING NEW IMG
+  let commentImg = document.createElement('img');
+  commentImg.className = 'dp';
+  commentImg.src = data.currentUser.image.png;
+  commentImg.setAttribute('alt', 'profile picture');
+  
+  commentDiv.appendChild(commentImg);
+  
+  //CREATING NEW TEXTAREA
+  let textarea = document.createElement('textarea');
+  textarea.id = "comment-textarea";
+  textarea.className = "fw-400 content";
+  textarea.setAttribute('placeholder', "Add a comment...");
+  textarea.rows = "5";
+  textarea.cols = "20";
+  
+  commentDiv.appendChild(textarea);
+  
+  //CREATING NEW BUTTON
+  let commentBtn = document.createElement('button');
+  commentBtn.id = 'comment-btn';
+  commentBtn.className = 'cl-light bg-blue fw-500';
+  commentBtn.setAttribute('type','submit')
+  commentBtn.appendChild(document.createTextNode('SEND'));  
+  
+  commentDiv.appendChild(commentBtn);
+ // console.log(commentDiv.children);
   
   // LOOPING TROUGH EACH REPLY BTN WITH ADDEVENTLISTENER
   document.querySelectorAll('.reply').forEach(clickedBtn => {clickedBtn.addEventListener('click', replyClicked);
@@ -85,29 +112,29 @@ fetch("js/data.json")
       }
       
       if (clickedBtn.classList.contains('showing') ) {
-         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).innerHTML = '';
-         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).innerHTML = '';
-         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).style.display = 'none';
+         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).innerHTML = '';
+         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).innerHTML = '';
+         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).style.display = 'none';
          
-         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).style.display = "none";
+         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).style.display = "none";
           
          clickedBtn.classList.remove('showing');
        }  else {
-         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).style.display = "grid";
-         document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).style.display = 'grid';
+         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).style.display = "grid";
+         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).style.display = 'grid';
      
-          document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).style.gridGap = "20px";
+          document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).style.gridGap = "20px";
      
           replyFillUp();
           
-          lastClicked = `${clickedBtn.id.match(/\d/g)}`;
+          lastClicked = `${clickedBtn.id.match(/\d/g)[0]}`;
           clickedBtn.classList.add('showing');
       }
     };
    
     function pushingClickedRA () { // RA = replies Array
       replies = [];
-      replies = data.comments[parseInt(clickedBtn.id.match(/\d/g)) - 1].replies;
+      replies = data.comments[parseInt(clickedBtn.id.match(/\d/g)[0]) - 1].replies;
     }
     
     function pushingRepliesC () { //C = contents
@@ -127,21 +154,23 @@ fetch("js/data.json")
       function replyComment () {
       document.querySelectorAll('.reply-comment').forEach(allReply => allReply.innerHTML = '');
       document.querySelectorAll('.reply-container').forEach(allReply => allReply.innerHTML = '');
-      document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-comment`).innerHTML +=
+       document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).innerHTML +=
           `
           <div class="container comment-box bg-light ">
       <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
-      <textarea class="fw-400 content" name=""  rows="8" cols="20"></textarea>
-      <button id="reply-currentUser-${clickedBtn.id.match(/\d/g)}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
+      <textarea class="fw-400 content" name=""  rows="5" cols="20"></textarea>
+      <button id="reply-currentUser-${clickedBtn.id.match(/\d/g)[0]}" class="reply post-reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
       </div>
           `
+           
+          postReply();
       }
       replyComment()
           if (replies[0].hasOwnProperty('id') && replies.length > 1) {
         pushingRepliesC();
         function  repliesfill() {
   for (let i = 0; i < replies.length; i++) {
-        document.getElementById(`${clickedBtn.id.match(/\d/g)}-reply-container`).innerHTML +=
+        document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).innerHTML +=
           `
           <div class="container bg-light">
       <div class="profile-period">
@@ -224,7 +253,7 @@ fetch("js/data.json")
        } else {
          perIncrease.addEventListener('click', () => { 
            if (perIncrease.nextElementSibling.classList.contains('incremented')) {
-           console.log('click')
+         //  console.log('click')
            } else {
            perIncrease.nextElementSibling.innerHTML = parseInt(perIncrease.nextElementSibling.innerHTML) + 1;
            perIncrease.nextElementSibling.classList.add('incremented');
@@ -235,19 +264,19 @@ fetch("js/data.json")
          });
        perIncrease.classList.add('active');
        }
-       console.log(perIncrease.classList.value + ": " + perIncrease.nextElementSibling.classList.value + ' :' + perIncrease.id);
+    //   console.log(perIncrease.classList.value + ": " + perIncrease.nextElementSibling.classList.value + ' :' + perIncrease.id);
      })
    }
    
    // FUNCTION FOR DECREASE VOTE VALUE
-   function decrease() {
+   function decrease () {
      document.querySelectorAll('.decrease-btn').forEach(perDecrease => {
        if (perDecrease.classList.contains('active')) {
-
+//console.log('active');
        } else {
          perDecrease.addEventListener('click', () => { 
            if (perDecrease.previousElementSibling.classList.contains('decremented') || !perDecrease.previousElementSibling.classList.contains('incremented')) {
-           console.log('click')
+          // console.log('click')
            } else {
            perDecrease.previousElementSibling.innerHTML = parseInt(perDecrease.previousElementSibling.innerHTML) - 1;
            perDecrease.previousElementSibling.classList.add('decremented');
@@ -258,8 +287,65 @@ fetch("js/data.json")
          });
        perDecrease.classList.add('active');
        }
-       console.log(perDecrease.classList.value + ": " + perDecrease.previousElementSibling.classList.value + ' :' + perDecrease.id);
      })// body...
+   }
+   function postReply() {
+     let commentId = [];
+       let newCommentOutput = "";
+       
+     document.querySelectorAll('.post-reply').forEach(post => {
+     let newReplyOutput2 = '';
+       
+     newReplyOutput2 = document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
+       post.addEventListener('click', () => {
+      // console.log(post.id);
+       console.log(post.previousElementSibling.value);
+      
+   function addReply(){
+     commentId.push(true);
+     console.log(newReplyOutput2);
+  // // console.log(document.getElementById('new-comment').innerHTML);
+     if (post.previousElementSibling.value) {
+    document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).style.display = "grid";
+    // let paragraph = document.createElement('p');
+    // paragraph.className ='fw-400 content';
+    // paragraph.appendChild(document.createTextNode(document.querySelector('#comment-textarea').value));
+    // document.getElementById('new-comment').appendChild(paragraph)
+    newCommentOutput = `
+    <div class="container bg-light">
+      <div class="profile-period">
+      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
+      <h2 class="fw-700">${data.currentUser.username}</h2>
+      <p class="fw-400 cl-dark-gray">just now</p>
+      </div>
+      <p id="reply-paragraph-${commentId.length}" class="fw-400 content"><span class="cl-blue fw-500" >@</span> </p>
+      <div class="vote bg-gray">
+      <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
+      <p class="cl-blue vote-score fw-700">0</p>
+      <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
+      </div>
+      <button id="reply-${parseInt(replies[0].id) + commentId.length}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
+      </div>`
+        console.log(`${post.id.match(/\d/g)[0]}-reply-container`);
+      document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).style.display = "none"
+        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML = newCommentOutput;
+        document.getElementById(`reply-paragraph-${commentId.length}`).innerText = post.previousElementSibling.value;
+        newReplyOutput2 += document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
+        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML = newReplyOutput2;
+        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).style.display = "grid";
+        for (let i = 0; i < document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).children.length; i++){
+        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).children[i].children[2].children[0].classList.remove('active');
+        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).children[i].children[2].children[2].classList.remove('active');
+        }
+     }
+     post.previousElementSibling.value = '';
+     
+     increase();
+     decrease();
+   }
+   addReply();
+     })});
+     
    }
 })
 .catch((e) => console.log(e));
