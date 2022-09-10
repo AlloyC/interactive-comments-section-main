@@ -293,9 +293,9 @@ fetch("js/data.json")
    function postReply() {
      let commentId = [];
        let newCommentOutput = "";
+     let newReplyOutput2 = '';
        
      document.querySelectorAll('.post-reply').forEach(post => {
-     let newReplyOutput2 = '';
        
        post.addEventListener('click', () => {
      newReplyOutput2 = document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
