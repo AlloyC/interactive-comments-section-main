@@ -11,7 +11,7 @@ let exReplies;
 let edited = false;
 let newReply;
 let exDelete;
-
+let lastClicked;
 let editBtnId;
 
 fetch('js/data.json')
@@ -19,7 +19,7 @@ fetch('js/data.json')
 .then(data => {
   console.log(data);
   function fillingDOM () {
-    let lastClicked;
+    
     let tweetsOutput = '';
     let repliesOutput = '';
     let userName = data.currentUser.username;
