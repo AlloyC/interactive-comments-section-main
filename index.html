@@ -25,16 +25,19 @@
 </style>
 </head>
 <body class="bg-gray">
-
-<!-- Pull dynamic content from the data.json file -->
-<section id="tweets">
-
-</section>
-<section id="new-comment">
-</section>
-<section id="comment">
-  
-</section>
+  <section id="tweets">
+    
+  </section>
+  <section class="card hidden">
+  <div id="delete-card">
+    <h2 class="fw-700 cl-dark-gray">Delete comment</h2>
+    <p class="fw-400 cl-dark-gray">Are you sure you want to delete this comment? This will remove the comment and can't be undone </p>
+    <div class="btn-flex">
+      <button id="cancel" class="fw-700 cl-light bg-dark-gray" type="submit">no, cancel</button>
+      <button id="confirm-delete" class="fw-700 cl-light bg-red" type="submit">yes, delete</button>
+    </div>
+    </div>
+  </section>
 <div class="attribution">
 Challenge by <a href="https://www.frontendmentor.io?ref=challenge" target="_blank">Frontend Mentor</a>.
 Coded by <a href="#">Your Name Here</a>.
