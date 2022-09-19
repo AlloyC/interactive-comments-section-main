@@ -1,352 +1,368 @@
-const tweet = document.getElementById("tweets");
-const userCommentBox = document.getElementById('comment');
-let currentUser;
-let container;
-let usernames = [];
-let userPics = [];
-let replies = [];
+const body = document.querySelector('body');
+const tweets = document.getElementById('tweets');
+let replyIndex;
+let replyParent;
+let clickReplyExternal;
+let replyingToBtn;
+let replyBtnEx;
+let reload = true;
+let exComment;
+let exReplies;
+let edited = false;
+let newReply;
+let exDelete;
 
-let repliesUsernames = [];
-let repliesUserPics = [];
-let repliesReplingTo = [];
+let editBtnId;
 
-
-let lastClicked;
-
-let increaseAmount = []
-let active = false;
-
-//fetching json file
-fetch("js/data.json")
-.then((res) => res.json())
-.then((data) => {
+fetch('js/data.json')
+.then(res => res.json())
+.then(data => {
   console.log(data);
-
-              //  COMMENTS LOOPS
-  data.comments.forEach((datum) => {
-    usernames.push(datum.user.username);
-    userPics.push(datum.user.image.png);
-    
-  });
+  function fillingDOM () {
+    let lastClicked;
+    let tweetsOutput = '';
+    let repliesOutput = '';
+    let userName = data.currentUser.username;
+    let userImg = data.currentUser.image.png;
+    let index = 0;
+    let repliesIndex = 0;
   
-    
-// DYNAMICALLY DISPLAYING THE COMMENTS
-  data.comments.forEach((datum) => {
-    
-    tweet.innerHTML += `
-    <div id=${datum.id}>
-    <div class="container bg-light">
-    <div class="profile-period">
-    <img class="dp" src="${datum.user.image.png}" alt="profile picture" />
-    <h2 class="fw-700">${datum.user.username}</h2>
-    <p class="fw-400 cl-dark-gray">${datum.createdAt}</p>
-    </div>
-    <p class="fw-400 content">${datum.content}</p>
-    <div class="vote bg-gray">
-    <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-    <p class="cl-blue vote-score fw-700">${datum.score}</p>
-    <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
-    </div>
-    <button id="reply-${datum.id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
-    </div>
-    
-    <div id="${datum.id}-reply-container" class="container reply-container">
-      
-    </div>
-    <div id="${datum.id}-reply-comment" class="reply-comment">
-    
-    </div>
-    </div>`;
-  });
-    increase();
-    decrease();
-  //DYNAMICALLY DISPLAYING USER COMMENT BOX
-  //CREATING NEW DIV.CONTAINER
-  let  commentDiv = document.createElement('div');
-  commentDiv.className ="container comment-box bg-light";
-  
-  userCommentBox.appendChild(commentDiv);
-  
-  //CREATING NEW IMG
-  let commentImg = document.createElement('img');
-  commentImg.className = 'dp';
-  commentImg.src = data.currentUser.image.png;
-  commentImg.setAttribute('alt', 'profile picture');
-  
-  commentDiv.appendChild(commentImg);
-  
-  //CREATING NEW TEXTAREA
-  let textarea = document.createElement('textarea');
-  textarea.id = "comment-textarea";
-  textarea.className = "fw-400 content";
-  textarea.setAttribute('placeholder', "Add a comment...");
-  textarea.rows = "5";
-  textarea.cols = "20";
-  
-  commentDiv.appendChild(textarea);
-  
-  //CREATING NEW BUTTON
-  let commentBtn = document.createElement('button');
-  commentBtn.id = 'comment-btn';
-  commentBtn.className = 'cl-light bg-blue fw-500';
-  commentBtn.setAttribute('type','submit')
-  commentBtn.appendChild(document.createTextNode('SEND'));  
-  
-  commentDiv.appendChild(commentBtn);
- // console.log(commentDiv.children);
-  
-  // LOOPING TROUGH EACH REPLY BTN WITH ADDEVENTLISTENER
-  document.querySelectorAll('.reply').forEach(clickedBtn => {clickedBtn.addEventListener('click', replyClicked);
-   
-   function replyClicked () {
-      pushingClickedRA();
-      if (typeof lastClicked != 'undefined' && document.getElementById(`reply-${lastClicked}`) != clickedBtn) {
-         document.getElementById(`${lastClicked}-reply-container`).innerHTML = '';
-         document.getElementById(`${lastClicked}-reply-comment`).innerHTML = '';
-         document.getElementById(`${lastClicked}-reply-comment`).style.display = 'none';
-         
-         document.getElementById(`${lastClicked}-reply-container`).style.display = "none";
-          
-         document.getElementById(`reply-${lastClicked}`).classList.remove('showing');
-        
-      }
-      
-      if (clickedBtn.classList.contains('showing') ) {
-         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).innerHTML = '';
-         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).innerHTML = '';
-         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).style.display = 'none';
-         
-         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).style.display = "none";
-          
-         clickedBtn.classList.remove('showing');
-       }  else {
-         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).style.display = "grid";
-         document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).style.display = 'grid';
-     
-          document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).style.gridGap = "20px";
-     
-          replyFillUp();
-          
-          lastClicked = `${clickedBtn.id.match(/\d/g)[0]}`;
-          clickedBtn.classList.add('showing');
-      }
-    };
-   
-    function pushingClickedRA () { // RA = replies Array
-      replies = [];
-      replies = data.comments[parseInt(clickedBtn.id.match(/\d/g)[0]) - 1].replies;
-    }
-    
-    function pushingRepliesC () { //C = contents
-      repliesUsernames = [];
-      repliesUserPics = [];
-      repliesReplyingTo = [];
-    
-      replies.forEach( repliedFrom => {
-          repliesUsernames.push(repliedFrom.user.username);
-          repliesUserPics.push(repliedFrom.user.image.png);
-          repliesReplyingTo.push(repliedFrom.replyingTo);
-        }
-      );
-    }
-    
-    function replyFillUp() {
-      function replyComment () {
-      document.querySelectorAll('.reply-comment').forEach(allReply => allReply.innerHTML = '');
-      document.querySelectorAll('.reply-container').forEach(allReply => allReply.innerHTML = '');
-       document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-comment`).innerHTML +=
-          `
-          <div class="container comment-box bg-light ">
-      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
-      <textarea class="fw-400 content" name=""  rows="5" cols="20"></textarea>
-      <button id="reply-currentUser-${clickedBtn.id.match(/\d/g)[0]}" class="reply post-reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
-      </div>
-          `
-           
-          postReply();
-      }
-      replyComment()
-          if (replies[0].hasOwnProperty('id') && replies.length > 1) {
-        pushingRepliesC();
-        function  repliesfill() {
-  for (let i = 0; i < replies.length; i++) {
-        document.getElementById(`${clickedBtn.id.match(/\d/g)[0]}-reply-container`).innerHTML +=
-          `
-          <div class="container bg-light">
-      <div class="profile-period">
-      <img class="dp" src="${repliesUserPics[i]}" alt="profile picture" />
-      <h2 class="fw-700">${repliesUsernames[i]}</h2>
-      <p class="fw-400 cl-dark-gray">${replies[i].createdAt}</p>
-      </div>
-      <p class="fw-400 content"><span class="cl-blue fw-500" >@${repliesReplyingTo[i]}</span> ${replies[i].content}</p>
-      <div class="vote bg-gray">
-      <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-      <p class="cl-blue vote-score fw-700">${replies[i].score}</p>
-      <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
-      </div>
-      <button id="reply-${replies[i].id}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
-      </div>
-          `
-        }
-          increase();
-          decrease();
-}
-        repliesfill()
-      }
-    }
-  });
-  
-    // ADD COMMENT VALUES
-  document.getElementById('comment-btn').addEventListener('click', addComment)
-    
-       let commentId = []
-       let newCommentOutput = "";
-       let newCommentOutput2 = '';
-   function addComment(){
-     commentId.push(true);
-     newCommentOutput2 = document.getElementById('new-comment').innerHTML;
-  // console.log(document.getElementById('new-comment').innerHTML);
-     if (document.querySelector('#comment-textarea').value) {
-     document.getElementById('new-comment').style.display = "grid"
-     let paragraph = document.createElement('p');
-     paragraph.className ='fw-400 content';
-     paragraph.appendChild(document.createTextNode(document.querySelector('#comment-textarea').value));
-    // document.getElementById('new-comment').appendChild(paragraph)
-     newCommentOutput = `
-     <div id="comment-container-${commentId.length}" class="container bg-light">
-     <div class="profile-period">
-      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
-      <h2 class="fw-700">${data.currentUser.username}</h2>
-      <p class="fw-400 cl-dark-gray"></p>
-      </div>
-      <p id="paragraph-${commentId.length}" class="fw-400 content"></p>
-      <div class="vote bg-gray">
-      <button id="new-comment-vote-up-${commentId.length}" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-      <p class="cl-blue vote-score fw-700">0</p>
-      <button id="new-comment-vote-down-${commentId.length}" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
-      </div>
-      <button id="new-comment-${commentId.length}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
-        </div>`
-        
-       document.getElementById('new-comment').style.display = "none"
-        document.getElementById('new-comment').innerHTML = newCommentOutput;
-        document.getElementById(`paragraph-${commentId.length}`).innerText = document.querySelector('#comment-textarea').value;
-        newCommentOutput2 += document.getElementById('new-comment').innerHTML;
-        document.getElementById('new-comment').innerHTML = newCommentOutput2;
-        document.getElementById('new-comment').style.display = "grid";
-        for (let i = 0; i < document.getElementById('new-comment').children.length; i++){
-        document.getElementById('new-comment').children[i].children[2].children[0].classList.remove('active');
-        document.getElementById('new-comment').children[i].children[2].children[2].classList.remove('active');
-        }
-     }
-     document.querySelector('#comment-textarea').value = '';
-     
-     increase();
-     decrease();
-     
-   }
-   
-   //FUCTION INCREASE FOR ALL '+'
-   function increase () {
-     document.querySelectorAll('.increase-btn').forEach(perIncrease => {
-       if (perIncrease.classList.contains('active')) {
- 
-       } else {
-         perIncrease.addEventListener('click', () => { 
-           if (perIncrease.nextElementSibling.classList.contains('incremented')) {
-         //  console.log('click')
-           } else {
-           perIncrease.nextElementSibling.innerHTML = parseInt(perIncrease.nextElementSibling.innerHTML) + 1;
-           perIncrease.nextElementSibling.classList.add('incremented');
-           if (perIncrease.nextElementSibling.classList.contains('decremented')) {
-             perIncrease.nextElementSibling.classList.remove('decremented');
-           }
-           }
-         });
-       perIncrease.classList.add('active');
-       }
-    //   console.log(perIncrease.classList.value + ": " + perIncrease.nextElementSibling.classList.value + ' :' + perIncrease.id);
-     })
-   }
-   
-   // FUNCTION FOR DECREASE VOTE VALUE
-   function decrease () {
-     document.querySelectorAll('.decrease-btn').forEach(perDecrease => {
-       if (perDecrease.classList.contains('active')) {
-//console.log('active');
-       } else {
-         perDecrease.addEventListener('click', () => { 
-           if (perDecrease.previousElementSibling.classList.contains('decremented') || !perDecrease.previousElementSibling.classList.contains('incremented')) {
-          // console.log('click')
-           } else {
-           perDecrease.previousElementSibling.innerHTML = parseInt(perDecrease.previousElementSibling.innerHTML) - 1;
-           perDecrease.previousElementSibling.classList.add('decremented');
-           if (perDecrease.previousElementSibling.classList.contains('incremented')) {
-             perDecrease.previousElementSibling.classList.remove('incremented');
-           }
-           }
-         });
-       perDecrease.classList.add('active');
-       }
-     })// body...
-   }
-   function postReply() {
-     let commentId = [];
-       let newCommentOutput = "";
-     let newReplyOutput2 = '';
-       
-     document.querySelectorAll('.post-reply').forEach(post => {
-       
-       post.addEventListener('click', () => {
-     newReplyOutput2 = document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
-      // console.log(post.id);
-       console.log(post.previousElementSibling.value);
-      
-   function addReply(){
-     commentId.push(true);
-     console.log(newReplyOutput2);
-  // // console.log(document.getElementById('new-comment').innerHTML);
-     if (post.previousElementSibling.value) {
-    document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).style.display = "grid";
-    // let paragraph = document.createElement('p');
-    // paragraph.className ='fw-400 content';
-    // paragraph.appendChild(document.createTextNode(document.querySelector('#comment-textarea').value));
-    // document.getElementById('new-comment').appendChild(paragraph)
-    newCommentOutput = `
-    <div class="container bg-light">
-      <div class="profile-period">
-      <img class="dp" src="${data.currentUser.image.png}" alt="profile picture" />
-      <h2 class="fw-700">${data.currentUser.username}</h2>
-      <p class="fw-400 cl-dark-gray">just now</p>
-      </div>
-      <p id="reply-paragraph-${commentId.length}" class="fw-400 content"><span class="cl-blue fw-500" >@</span> </p>
-      <div class="vote bg-gray">
-      <button id="" class="increase-btn btn" type="submit"><img src="images/icon-plus.svg" alt="" /></button>
-      <p class="cl-blue vote-score fw-700">0</p>
-      <button id="" class="decrease-btn btn" type="submit"><img src="images/icon-minus.svg" alt="decrease" /></button>
-      </div>
-      <button id="reply-${parseInt(replies[0].id) + commentId.length}" class="reply cl-blue fw-500" type="submit"><img src="images/icon-reply.svg" alt="reply" />Reply</button>
+  data.comments.forEach(data => {
+          data.replies.forEach(replies => {
+          if (replies.content) {
+            let replyButton;
+            let replyCont;
+            if (replies.user.username == userName) {
+              replyButton = `
+              <div class="delete-edit">
+               <button class="delete-btn | fw-500 cl-red"><img src="./images/icon-delete.svg"/>Delete</button>
+               <button id="edit-${repliesIndex}-${index}-btn" class="edit-btn | fw-500 cl-blue"><img src="./images/icon-edit.svg"/>Edit</button>
+              </div>
+              `
+            }
+            else {replyButton = `<button id="comments-${repliesIndex}-${index}-btn" class="reply-btn | fw-500 cl-blue"><img src="./images/icon-reply.svg"/>Reply</button>`}
+            if (replies.user.username == userName) {
+              replyCont = 
+              `<div id="create-replies__${repliesIndex}-${index}" class="update create-replies hidden bg-light">
+            <div class="name-img-date">
+              <img class="comment-img" src="${replies.user.image.png}" alt="user picture" />
+              <h2 class="comment-name">${replies.user.username}</h2>
+            </div>
+            <textarea class="content textarea" name=""  rows="5"></textarea>
+            <div class="vote bg-gray">
+              <button id="vote-up-${replies.id}" class="btn-up | btn"><img src="./images/icon-plus.svg" alt="increase sign"/></button>
+              <p class="vote-val">${replies.score}</p>
+              <button id="vote-down-${replies.id}" class="btn-down | btn"><img src="./images/icon-minus.svg" alt="decrease sign"/></button>
+            </div>
+            ${replyButton}
+            <button id="create-replies__${repliesIndex}-${index}-btn" class="send-reply update-btn reply-btn | fw-500 cl-blue">update</button>
+          </div>`
+              
+            } else {
+              replyCont = 
+              `<div id="create-replies__${repliesIndex}-${index}" class="create-replies hidden bg-light">
+            <img class="comment-img" src="${userImg}" alt="profile picture" />
+            <textarea class="textarea" name=""  rows="5"></textarea>
+            <button id="create-replies__${repliesIndex}-${index}-btn" class="send-reply reply-btn | fw-500 cl-blue"><img src="./images/icon-reply.svg"/>Reply</button>
+          </div>
+              `
+            }
+          repliesOutput +=  `
+          <div class="replies">
+          <div class="container hidden bg-light">
+            <div class="name-img-date">
+              <img class="comment-img" src="${replies.user.image.png}" alt="user picture" />
+              <h2 class="comment-name">${replies.user.username}</h2>
+              <p class="created-at">${replies.createdAt}</p>
+            </div>
+            <p id="content-${replies.id}" class="content"><span class="cl-blue fw-500">@${replies.replyingTo} </span><span>${replies.content}</span></p>
+            <div class="vote bg-gray">
+              <button id="vote-up-${replies.id}" class="btn-up | btn"><img src="./images/icon-plus.svg" alt="increase sign"/></button>
+              <p class="vote-val">${replies.score}</p>
+              <button id="vote-down-${replies.id}" class="btn-down | btn"><img src="./images/icon-minus.svg" alt="decrease sign"/></button>
+            </div>
+            ${replyButton}
+          </div>
+          ${replyCont}
       </div>`
-        console.log(`${post.id.match(/\d/g)[0]}-reply-container`);
-      document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).style.display = "none"
-        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML = newCommentOutput;
-        document.getElementById(`reply-paragraph-${commentId.length}`).innerText = post.previousElementSibling.value;
-        newReplyOutput2 += document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML;
-        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).innerHTML = newReplyOutput2;
-        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).style.display = "grid";
-        for (let i = 0; i < document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).children.length; i++){
-        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).children[i].children[2].children[0].classList.remove('active');
-        document.getElementById(`${post.id.match(/\d/g)[0]}-reply-container`).children[i].children[2].children[2].classList.remove('active');
+      repliesIndex++
+          } else {
+            repliesOutput = '';
+          }
+          })
+          
+    tweetsOutput += `
+    <div id="comments-${index}" class="comment-reply-container">
+      <div class="container bg-light">
+        <div class="name-img-date">
+          <img class="comment-img" src="${data.user.image.png}" alt="user picture" />
+          <h2 class="comment-name">${data.user.username}</h2>
+          <p class="created-at">${data.createdAt}</p>
+        </div>
+        <p class="content"></p>
+        <div class="vote bg-gray">
+              <button id="vote-up-${data.id}" class="btn-up | btn"><img src="./images/icon-plus.svg" alt="increase sign"/></button>
+              <p class="vote-val">${data.score}</p>
+              <button id="vote-down-${data.id}" class="btn-down | btn"><img src="./images/icon-minus.svg" alt="decrease sign"/></button>
+            </div>
+        <button id="comments-${index}-btn" class="reply-btn | fw-500 cl-blue"><img src="./images/icon-reply.svg"/>Reply</button>
+      </div>
+      <div class="div">
+       ${repliesOutput}
+       <div id="create-replies-${index}" class="create-replies hidden bg-light">
+            <img class="comment-img" src="${userImg}" alt="profile picture" />
+            <textarea class="textarea" name=""  rows="5"></textarea>
+            <button id="create-replies-${index}-btn" class="send-reply reply-btn | fw-500 cl-blue"><img src="./images/icon-reply.svg"/>Reply</button>
+        </div>
+      </div>
+    </div>
+    `
+    repliesOutput = '';
+    tweets.style.display = 'none';
+    tweets.innerHTML = tweetsOutput;
+    document.querySelector(`#comments-${index} .container .content`).innerText = data.content;
+      document.querySelectorAll('.comment-name').forEach(commentName => commentName.innerText == userName? commentName.innerHTML = `${userName} <span class="you fw-500 cl-light bg-blue">you</span>`: commentName = commentName)
+    
+    tweetsOutput = tweets.innerHTML;
+    index++;
+  })
+  tweetsOutput += `
+    <div id="create-comment" class="create-replies bg-light">
+      <img class="comment-img" src="${data.currentUser.image.png}" alt="profile picture" />
+      <textarea class="textarea" name=""  rows="5" placeholder="Add a comment..."></textarea>
+      <button class="send cl-light bg-blue fw-500">SEND</button>
+    </div>
+  `
+  tweets.style.display = 'block';
+    tweets.innerHTML = tweetsOutput;
+  document.querySelector('.send').addEventListener('click', addComment)
+   if (typeof externalReplyBtn != 'undefined') {
+    
+    reload = true;
+    clickReply();
+  }
+  // SHOWING REPLIES ON REPLY CLICKED
+  
+  document.querySelectorAll('.reply-btn').forEach(replyBtn => {
+    replyBtn.addEventListener('click', () => {replyBtnEx = replyBtn.id; reload = false; clickReply()})});
+  function clickReply() {
+    let replyBtn;
+    if (!reload) {
+     replyBtn = document.getElementById(replyBtnEx);
+    } 
+    else {
+       replyBtn = document.getElementById(externalReplyBtn);
+    }
+      replyIndex = parseInt(replyBtn.parentNode.id.match(/\d$/g));
+    if (replyBtn.classList.contains('send-reply')) {
+      replyParent = replyBtn.parentNode.id;
+      if (document.querySelector(`#${replyParent} .textarea`).value) {
+        if (!replyBtn.parentNode.parentNode.classList.contains('replies')) {
+        externalReplyBtn = replyingToBtn.id;
+      } else {
+       externalReplyBtn = document.getElementById(replyBtnEx).parentNode.parentNode.parentNode.previousElementSibling.lastElementChild.id;
+      }
+        addNewReply();
+      }
+    } else {
+      if (!replyBtn.classList.contains('send-reply')) {
+      replyingToBtn = replyBtn;
+      }
+      
+      if (replyBtn.parentNode.nextElementSibling.lastElementChild.classList.contains('hidden') || (replyBtn.parentNode.parentNode.classList.contains('replies') && replyBtn.parentNode.nextElementSibling.classList.contains('hidden'))) {
+       
+       if (lastClicked != replyBtn && typeof lastClicked != "undefined" && !lastClicked.classList.contains('send-reply') && lastClicked.parentNode.parentNode.classList.contains('replies') /*&& replyBtn.parentNode.parentNode.classList.contains('replies')*/) {
+         lastClicked.parentNode.nextElementSibling.classList.add('hidden')
+         if (!replyBtn.parentNode.parentNode.classList.contains('replies')) {
+           for (let i = 0; i < lastClicked.parentNode.parentNode.parentNode.children.length; i++) {
+             if (lastClicked.parentNode.parentNode.parentNode.children[lastClicked.parentNode.parentNode.parentNode.children.length - 1] == lastClicked.parentNode.parentNode.parentNode.lastElementChild) {
+               lastClicked.parentNode.parentNode.parentNode.children[i].classList.add('hidden')
+             } else {
+           lastClicked.parentNode.parentNode.parentNode.children[i].children[0].classList.add('hidden')
+             }
+           }
+         }
+       }
+       
+        if ( lastClicked != replyBtn && typeof lastClicked != "undefined" && !lastClicked.classList.contains('send-reply') && !lastClicked.parentNode.parentNode.classList.contains('replies') && !replyBtn.parentNode.parentNode.classList.contains('replies')) {
+         let lastChildren = lastClicked.parentNode.nextElementSibling.children;
+         for (let i = 0; i < lastChildren.length; i++) {
+          if(!lastChildren[i].classList.contains('hidden') && lastChildren[i].children[0].classList.contains('hidden')) {
+            lastChildren[i].children[0].classList.add('hidden');
+          } else {
+            lastChildren[i].classList.add('hidden');
+          }
         }
-     }
-     post.previousElementSibling.value = '';
-     
-     increase();
-     decrease();
-   }
-   addReply();
-     })});
-     
-   }
-})
-.catch((e) => console.log(e));
+        }
+        
+        if (!(replyBtn.parentNode.parentNode.classList.contains('replies') && replyBtn.parentNode.nextElementSibling.classList.contains('hidden'))) {
+        let children = replyBtn.parentNode.nextElementSibling.children;
+        for (let i = 0; i < children.length; i++) {
+          if(!children[i].classList.contains('hidden') && children[i].children[0].classList.contains('hidden')) {
+            children[i].children[0].classList.remove('hidden');
+          } else {
+            children[i].classList.remove('hidden');
+          }
+        }
+        } else {
+          replyBtn.parentNode.nextElementSibling.classList.remove('hidden')
+        }
+      } else {
+        if (!(replyBtn.parentNode.parentNode.classList.contains('replies') && !replyBtn.parentNode.nextElementSibling.classList.contains('hidden'))) {
+        let children = replyBtn.parentNode.nextElementSibling.children;
+        for (let i = 0; i < children.length; i++) {
+          if(!children[i].classList.contains('hidden') && !children[i].children[0].classList.contains('hidden') && i != children.length - 1) {
+            children[i].children[0].classList.add('hidden');
+          } else {
+            children[i].classList.add('hidden');
+            if (!lastClicked.classList.contains('send-reply') && !lastClicked.parentNode.nextElementSibling.classList.contains('hidden') && lastClicked.parentNode.parentNode.classList.contains('replies')) {
+              lastClicked.parentNode.nextElementSibling.classList.add('hidden')
+            }
+          }
+        }
+        } else {
+          replyBtn.parentNode.nextElementSibling.classList.add('hidden')
+        }
+      }
+    }
+    lastClicked = replyBtn;
+    clickReplyExternal = () => clickReply();
+  }
+  // ADDING DELETE BTN FUNCTIONALITY
+  document.querySelectorAll('.delete-btn').forEach(DeleteBtn => DeleteBtn.addEventListener('click',() => {exDelete = DeleteBtn.nextElementSibling.id; deletePopUp()}));
+  
+  function deletePopUp() {
+    if (edited) {
+      
+    } else {
+    document.querySelector('.card').classList.remove('hidden');
+    }
+  }
+  
+  // ADDING EDIT BTN FUNCTIONALITY
+  
+  document.querySelectorAll('.edit-btn').forEach(edit => edit.addEventListener('click',() => {editBtnId = edit.id; editComment()}));
+  
+  function editComment() {
+    data.comments.forEach(comment => comment.replies.forEach(replies => {if(replies.id == document.getElementById(editBtnId).parentNode.previousElementSibling.previousElementSibling.id.match(/\d+.*\d*/g)[0]) { 
+      document.getElementById(editBtnId).parentNode.parentNode.nextElementSibling.children[1].value = document.getElementById(editBtnId).parentNode.previousElementSibling.previousElementSibling.lastElementChild.innerText;
+      document.getElementById(editBtnId).parentNode.parentNode.classList.add('hidden');
+      document.getElementById(editBtnId).parentNode.parentNode.nextElementSibling.classList.remove('hidden');
+      exComment = comment;
+      exReplies = replies;
+      edited = true;
+       }
+    }))
+  }
+  // ADDING VOTE FUNCTIONALITY
+  let exBtn;
+  document.querySelectorAll('.btn-up').forEach(btnUp => btnUp.addEventListener('click',() => { exBtn = btnUp.id;if (!document.getElementById(exBtn).classList.contains('incremented')) {increment()}}))
+  
+  document.querySelectorAll('.btn-down').forEach(btndown => btndown.addEventListener('click',() => { exBtn = btndown.id;if (!document.getElementById(exBtn).classList.contains('decremented')) {decrement()}}))
+  function increment() {
+    data.comments.forEach(comments => {
+      if (comments.id == exBtn.match(/\d+.*\d*/g)[0] && typeof comments.incremented == "undefined") {
+        comments.score = parseInt(comments.score) + 1;
+        document.getElementById(exBtn).nextElementSibling.innerText = comments.score;
+        comments.incremented = true;
+      } else {
+        comments.replies.forEach(replies => {
+          if (replies.id == exBtn.match(/\d+.*\d*/g)[0] && typeof replies.incremented == 'undefined') {
+            replies.score = parseInt(replies.score) + 1;
+            document.getElementById(exBtn).nextElementSibling.innerText = replies.score;
+          replies.incremented = true;
+          }
+        })
+      }
+    })
+  }
+  
+  function decrement() {
+    data.comments.forEach(comments => {
+      if (comments.id == exBtn.match(/\d+.*\d*/g)[0] && typeof comments.incremented != "undefined") {
+        comments.score = parseInt(comments.score) - 1;
+        document.getElementById(exBtn). previousElementSibling.innerText = comments.score;
+       delete comments.incremented;
+      } else {
+        comments.replies.forEach(replies => {
+          if (replies.id == exBtn.match(/\d+.*\d*/g)[0] && typeof replies.incremented != 'undefined') {
+            replies.score = parseInt(replies.score) - 1;
+            document.getElementById(exBtn). previousElementSibling.innerText = replies.score;
+         delete replies.incremented;
+          }
+        })
+      }
+    })
+  }
+  }
+  fillingDOM();
+  // ADDING NEW COMMENT VALUES TO JSON  FILE
+  let lastId = 0.001;
+  function addComment() {
+    let newContent = document.getElementById('create-comment').children[1].value;
+    if (newContent) {
+    let newCommentObj = {
+      id: lastId,
+      content: newContent,
+      createdAt: "just now",
+      score: 0,
+      user: {image: data.currentUser.image,
+              username: data.currentUser.username},
+      replies: []
+    };
+    data.comments.push(newCommentObj);
+    lastId += 0.001;
+    fillingDOM();
+    }
+  };
+  
+  //ADDING NEW REPLIES
+  lastRep = 1
+  function addNewReply() {
+    if (edited && document.getElementById(editBtnId).parentNode.previousElementSibling.previousElementSibling.previousElementSibling.children[1].innerText != data.currentUser.username) {
+      let replyingTo = lastClicked;
+    }
+    newReply = {
+      id: `${replyIndex}.${lastRep}`,
+      content: document.querySelector(`#${replyParent} .textarea`).value,
+      createdAt: 'just now',
+      score: 0,
+      replyingTo: replyingToBtn.previousElementSibling.previousElementSibling.previousElementSibling.children[1].innerText,
+      user: {image: data.currentUser.image,
+              username: data.currentUser.username}
+    };
+    lastRep++
+    if (edited && document.getElementById(editBtnId).parentNode.previousElementSibling.previousElementSibling.previousElementSibling.children[1].innerText == data.currentUser.username) {
+      newReply.replyingTo = exComment.replies[exComment.replies.indexOf(exReplies)].replyingTo;
+      newReply.score = exComment.replies[exComment.replies.indexOf(exReplies)].score;
+      newReply.incremented = exComment.replies[exComment.replies.indexOf(exReplies)].incremented;
+    }
+    if (edited) {
+    slicing();
+    edited = false;
+    
+    } else {
+    data.comments[replyIndex].replies.push(newReply)};
+    fillingDOM();
+  }
+  function slicing() {
+      exComment.replies.splice(exComment.replies.indexOf(exReplies),1,newReply);
+      }
+      
+  // ADDING CONFIRM DELETE FUNCTIONALITY
+  document.getElementById('confirm-delete').addEventListener('click',() => {
+    let textContentVal = document.getElementById(exDelete).parentNode.previousElementSibling.previousElementSibling.lastElementChild.innerText;
+    data.comments.forEach(comment => {
+      comment.replies.forEach(replies => {
+      if (replies.content == textContentVal) { 
+    comment.replies.splice(comment.replies.indexOf(replies),1);
+    document.querySelector('.card').classList.add('hidden');
+    fillingDOM();
+    }
+    })})
+    });
+    // ADDING CANCEL FUNCTIONALILY
+    document.getElementById('cancel').addEventListener('click',() => document.querySelector('.card').classList.add('hidden'));
+  
+  })
+.catch((error) => console.log(error))
