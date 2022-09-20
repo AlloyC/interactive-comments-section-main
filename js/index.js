@@ -13,11 +13,17 @@ let newReply;
 let exDelete;
 let lastClicked;
 let editBtnId;
+let data;
 
 fetch('js/data.json')
 .then(res => res.json())
-.then(data => {
-  console.log(data);
+.then(datar => {
+ // localStorage.clear();
+  if (typeof localStorage.getItem('data') == "object") {
+  data = datar;
+  } else {
+    data = JSON.parse(localStorage.getItem('data'));
+  }
   function fillingDOM () {
     
     let tweetsOutput = '';
@@ -275,6 +281,7 @@ fetch('js/data.json')
         })
       }
     })
+    localStorage.setItem('data',JSON.stringify(data))
   }
   
   function decrement() {
@@ -293,6 +300,7 @@ fetch('js/data.json')
         })
       }
     })
+    localStorage.setItem('data',JSON.stringify(data))
   }
   }
   fillingDOM();
@@ -313,11 +321,18 @@ fetch('js/data.json')
     data.comments.push(newCommentObj);
     lastId += 0.001;
     fillingDOM();
+    localStorage.setItem('data',JSON.stringify(data))
     }
   };
   
   //ADDING NEW REPLIES
-  lastRep = 1
+  if (typeof localStorage.getItem('lastRep') != 'string') {
+    lastRep = 1;
+  localStorage.setItem('lastRep',JSON.stringify(lastRep))
+  } else {
+    lastRep = parseInt(localStorage.getItem('lastRep'))
+  }
+  
   function addNewReply() {
     if (edited && document.getElementById(editBtnId).parentNode.previousElementSibling.previousElementSibling.previousElementSibling.children[1].innerText != data.currentUser.username) {
       let replyingTo = lastClicked;
@@ -331,7 +346,8 @@ fetch('js/data.json')
       user: {image: data.currentUser.image,
               username: data.currentUser.username}
     };
-    lastRep++
+    lastRep++;
+    localStorage.setItem('lastRep',JSON.stringify(lastRep));
     if (edited && document.getElementById(editBtnId).parentNode.previousElementSibling.previousElementSibling.previousElementSibling.children[1].innerText == data.currentUser.username) {
       newReply.replyingTo = exComment.replies[exComment.replies.indexOf(exReplies)].replyingTo;
       newReply.score = exComment.replies[exComment.replies.indexOf(exReplies)].score;
@@ -340,10 +356,11 @@ fetch('js/data.json')
     if (edited) {
     slicing();
     edited = false;
-    
+    localStorage.setItem('data',JSON.stringify(data))
     } else {
     data.comments[replyIndex].replies.push(newReply)};
     fillingDOM();
+    localStorage.setItem('data',JSON.stringify(data))
   }
   function slicing() {
       exComment.replies.splice(exComment.replies.indexOf(exReplies),1,newReply);
@@ -358,6 +375,7 @@ fetch('js/data.json')
     comment.replies.splice(comment.replies.indexOf(replies),1);
     document.querySelector('.card').classList.add('hidden');
     fillingDOM();
+    localStorage.setItem('data',JSON.stringify(data))
     }
     })})
     });
